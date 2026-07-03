@@ -53,7 +53,7 @@
       <div id="status" class="status loading">⏳ Verbinde mit Cloud...</div>
       
       <div class="btn-group">
-        <a id="btnARViewer" class="btn ar-viewer" style="display: none;">🕶️ In AR ansehen</a>
+        <a id="btnARViewer" class="btn ar-viewer" style="display: none;"> In AR ansehen</a>
         
         <a id="btnManual" class="btn download" style="display: none;">💾 Falls der Download nicht startet</a>
       </div>
@@ -127,7 +127,7 @@
     }
 
     function showSuccess() {
-      statusDiv.textContent = "✅ Download gestartet!";
+      statusDiv.textContent = "Download gestartet!";
       statusDiv.className = "status success";
       subText.textContent = "Die .glb-Datei wird heruntergeladen. Du kannst das Modell auch direkt in AR betrachten.";
     }
@@ -142,7 +142,7 @@
     const modelUrl = params.get('model');
 
     if (modelUrl) {
-      statusDiv.textContent = "🚀 Downloade .glb-Modell...";
+      statusDiv.textContent = " Downloade .glb-Modell...";
       processDownload(modelUrl);
     } else {
       showError("❌ Kein Modell gefunden");
