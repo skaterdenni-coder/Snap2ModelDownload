@@ -3,14 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3D Modell Download</title>
+  <title>3D Modell Download & AR</title>
   <style>
     :root {
-      --bg: #f5f6f7; --text: #111; --card: #fff; --border: #e6e6e6; --primary: #2d7d46;
+      --bg: #f5f6f7; --text: #111; --card: #fff; --border: #e6e6e6; 
+      --primary: #2d7d46; --secondary: #004a99;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .wrap { max-width: 500px; margin: 10vh auto padding: 20px; text-align: center; }
+    .wrap { max-width: 500px; margin: 10vh auto; padding: 20px; text-align: center; }
     .card {
       background: var(--card); border: 1px solid var(--border); border-radius: 14px;
       padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,.05);
@@ -25,12 +26,20 @@
     .status.success { background: #d4edda; color: #155724; }
     .status.error { background: #f8d7da; color: #721c24; }
 
-    .btn {
-      display: inline-block; background: var(--primary); color: white;
-      padding: 12px 24px; border-radius: 8px; text-decoration: none;
-      font-weight: bold; border: none; cursor: pointer; transition: background 0.2s;
+    .btn-group {
+      display: flex; flex-direction: column; gap: 12px; margin-top: 15px;
     }
-    .btn:hover { background: #236136; }
+    .btn {
+      display: inline-block; padding: 14px 24px; border-radius: 8px; 
+      text-decoration: none; font-weight: bold; border: none; cursor: pointer; 
+      transition: background 0.2s; font-size: 15px;
+    }
+    .btn.download { background: var(--primary); color: white; }
+    .btn.download:hover { background: #236136; }
+    
+    .btn.ar-viewer { background: var(--secondary); color: white; }
+    .btn.ar-viewer:hover { background: #003366; }
+    
     .footer { font-size: 11px; margin-top: 25px; color: #888; }
   </style>
 </head>
@@ -38,23 +47,30 @@
 
   <div class="wrap">
     <div class="card">
-      <h1>3D Modell Download</h1>
+      <h1>3D Modell bereit</h1>
       <p id="subText">Dein Download wird vorbereitet...</p>
       
       <div id="status" class="status loading">⏳ Verbinde mit Cloud...</div>
       
-      <a id="btnManual" class="btn" style="display: none;">💾 Falls der Download nicht startet</a>
+      <div class="btn-group">
+        <a id="btnARViewer" class="btn ar-viewer" style="display: none;">🕶️ In AR ansehen</a>
+        
+        <a id="btnManual" class="btn download" style="display: none;">💾 Falls der Download nicht startet</a>
+      </div>
       
       <div class="footer">Created by Simba</div>
     </div>
   </div>
 
   <script>
+    // WICHTIG: Ersetze dies mit der echten URL deiner ersten HTML-Seite (AR Model Viewer)
+    const VIEWER_PAGE_URL = "https://deine-domain.com/viewer.html";
+
     const statusDiv = document.getElementById('status');
     const subText = document.getElementById('subText');
     const btnManual = document.getElementById('btnManual');
+    const btnARViewer = document.getElementById('btnARViewer');
 
-    // Generiert den Dateinamen basierend auf dem aktuellen Datum/Uhrzeit
     function getTimestampName() {
       const now = new Date();
       const tag = String(now.getDate()).padStart(2, '0');
@@ -67,25 +83,22 @@
     async function processDownload(url) {
       const fileName = getTimestampName();
       
+      // AR-Viewer Button direkt scharf schalten
+      setupARButton(url);
+      
       try {
-        // Blob-Download-Variante (erzwingt den Download im Browser)
         const response = await fetch(url);
-        if (!response.ok) throw new Error("Netzwerk-Fehler beim Abruf der Datei");
+        if (!response.ok) throw new Error();
         
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
         
-        // Setup für den manuellen Ausweich-Button
-        setupButton(blobUrl, fileName);
-        
-        // Automatischen Download triggern
+        setupDownloadButton(blobUrl, fileName);
         triggerAutoDownload(blobUrl, fileName);
-        
         showSuccess();
       } catch (e) {
-        console.warn("Direkter Blob-Download fehlgeschlagen, nutze Fallback-Methode:", e);
-        // Fallback: Direktes Verlinken, falls CORS den Fetch blockiert
-        setupButton(url, fileName);
+        // Fallback bei CORS-Problemen
+        setupDownloadButton(url, fileName);
         triggerAutoDownload(url, fileName, true);
         showSuccess();
       }
@@ -101,16 +114,22 @@
       document.body.removeChild(a);
     }
 
-    function setupButton(url, fileName) {
+    function setupDownloadButton(url, fileName) {
       btnManual.href = url;
       btnManual.download = fileName;
       btnManual.style.display = "inline-block";
     }
 
+    function setupARButton(rawModelUrl) {
+      // Baut den Link zur Viewer-Seite mit dem exakt gleichen Modell-Parameter
+      btnARViewer.href = `${VIEWER_PAGE_URL}?model=${encodeURIComponent(rawModelUrl)}`;
+      btnARViewer.style.display = "inline-block";
+    }
+
     function showSuccess() {
       statusDiv.textContent = "✅ Download gestartet!";
       statusDiv.className = "status success";
-      subText.textContent = "Die .glb-Datei wurde an dein Endgerät übertragen.";
+      subText.textContent = "Die .glb-Datei wird heruntergeladen. Du kannst das Modell auch direkt in AR betrachten.";
     }
 
     function showError(msg) {
@@ -119,7 +138,6 @@
       subText.textContent = "Bitte überprüfe den Link oder versuche es später noch einmal.";
     }
 
-    // URL-Parameter auslesen
     const params = new URLSearchParams(window.location.search);
     const modelUrl = params.get('model');
 
