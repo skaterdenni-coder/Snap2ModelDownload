@@ -6,7 +6,7 @@ Das Projekt nutzt die **Litterbox API (catbox.moe)** für den temporären Datei-
 
 ---
 
-## 🛠️ System-Architektur
+## System-Architektur
 
 Das System besteht aus zwei eigenständigen HTML-Seiten:
 
@@ -22,7 +22,7 @@ Das System besteht aus zwei eigenständigen HTML-Seiten:
 
 ---
 
-## 🚀 Einrichtung & Anpassung
+## Einrichtung & Anpassung
 
 1. Lade beide HTML-Dateien auf deinen Webserver oder GitHub Pages hoch.
 2. Öffne die Datei `download.html` und passe in den Scripts (ca. Zeile 57) die URL zu deiner Viewer-Seite an:
