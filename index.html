@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D Modell Download</title>
+  <style>
+    :root {
+      --bg: #f5f6f7; --text: #111; --card: #fff; --border: #e6e6e6; --primary: #2d7d46;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 500px; margin: 10vh auto padding: 20px; text-align: center; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+    h1 { font-size: 24px; margin: 0 0 10px; font-weight: 800; }
+    p { color: #555; font-size: 15px; margin: 0 0 20px; }
+    
+    .status {
+      padding: 15px; border-radius: 8px; font-weight: 600; margin-bottom: 20px;
+    }
+    .status.loading { background: #d1ecf1; color: #0c5460; }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+
+    .btn {
+      display: inline-block; background: var(--primary); color: white;
+      padding: 12px 24px; border-radius: 8px; text-decoration: none;
+      font-weight: bold; border: none; cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover { background: #236136; }
+    .footer { font-size: 11px; margin-top: 25px; color: #888; }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="card">
+      <h1>3D Modell Download</h1>
+      <p id="subText">Dein Download wird vorbereitet...</p>
+      
+      <div id="status" class="status loading">⏳ Verbinde mit Cloud...</div>
+      
+      <a id="btnManual" class="btn" style="display: none;">💾 Falls der Download nicht startet</a>
+      
+      <div class="footer">Created by Simba</div>
+    </div>
+  </div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const subText = document.getElementById('subText');
+    const btnManual = document.getElementById('btnManual');
+
+    // Generiert den Dateinamen basierend auf dem aktuellen Datum/Uhrzeit
+    function getTimestampName() {
+      const now = new Date();
+      const tag = String(now.getDate()).padStart(2, '0');
+      const monat = String(now.getMonth() + 1).padStart(2, '0');
+      const stunde = String(now.getHours()).padStart(2, '0');
+      const minute = String(now.getMinutes()).padStart(2, '0');
+      return `Modell_${tag}-${monat}_${stunde}-${minute}.glb`;
+    }
+
+    async function processDownload(url) {
+      const fileName = getTimestampName();
+      
+      try {
+        // Blob-Download-Variante (erzwingt den Download im Browser)
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Netzwerk-Fehler beim Abruf der Datei");
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Setup für den manuellen Ausweich-Button
+        setupButton(blobUrl, fileName);
+        
+        // Automatischen Download triggern
+        triggerAutoDownload(blobUrl, fileName);
+        
+        showSuccess();
+      } catch (e) {
+        console.warn("Direkter Blob-Download fehlgeschlagen, nutze Fallback-Methode:", e);
+        // Fallback: Direktes Verlinken, falls CORS den Fetch blockiert
+        setupButton(url, fileName);
+        triggerAutoDownload(url, fileName, true);
+        showSuccess();
+      }
+    }
+
+    function triggerAutoDownload(url, fileName, isFallback = false) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      if (isFallback) a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function setupButton(url, fileName) {
+      btnManual.href = url;
+      btnManual.download = fileName;
+      btnManual.style.display = "inline-block";
+    }
+
+    function showSuccess() {
+      statusDiv.textContent = "✅ Download gestartet!";
+      statusDiv.className = "status success";
+      subText.textContent = "Die .glb-Datei wurde an dein Endgerät übertragen.";
+    }
+
+    function showError(msg) {
+      statusDiv.textContent = msg;
+      statusDiv.className = "status error";
+      subText.textContent = "Bitte überprüfe den Link oder versuche es später noch einmal.";
+    }
+
+    // URL-Parameter auslesen
+    const params = new URLSearchParams(window.location.search);
+    const modelUrl = params.get('model');
+
+    if (modelUrl) {
+      statusDiv.textContent = "🚀 Downloade .glb-Modell...";
+      processDownload(modelUrl);
+    } else {
+      showError("❌ Kein Modell gefunden");
+    }
+  </script>
+</body>
+</html>
